@@ -1,41 +1,43 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Key, GithubIcon,Star } from "lucide-react"
-import { useState, useEffect } from "react"
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Key, GithubIcon, Star } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface HeaderProps {
-  onOpenApiModal: () => void
-  credits: number
+  onOpenApiModal: () => void;
+  credits: number;
 }
 
 export function Header({ onOpenApiModal, credits }: HeaderProps) {
-  const [starCount, setStarCount] = useState<number | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [starCount, setStarCount] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const GITHUB_REPO = "username/audio-blinkshot" // TODO: Update with actual repo
+  const GITHUB_REPO = "nutlope/audio-blinkshot"; // TODO: Update with actual repo
 
   useEffect(() => {
     const fetchStarCount = async () => {
       try {
-        const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`)
+        const response = await fetch(
+          `https://api.github.com/repos/${GITHUB_REPO}`
+        );
         if (response.ok) {
-          const data = await response.json()
-          setStarCount(data.stargazers_count)
+          const data = await response.json();
+          setStarCount(data.stargazers_count);
         } else {
-          setStarCount(0)
+          setStarCount(0);
         }
       } catch (error) {
-        console.error("Failed to fetch GitHub stars:", error)
-        setStarCount(0)
+        console.error("Failed to fetch GitHub stars:", error);
+        setStarCount(0);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchStarCount()
-  }, [])
+    fetchStarCount();
+  }, []);
 
   return (
     <header className="border-b border px-6 py-4 flex items-center justify-between">
@@ -54,7 +56,9 @@ export function Header({ onOpenApiModal, credits }: HeaderProps) {
           rel="noopener noreferrer"
           className="flex flex-col gap-0.5 hover:opacity-80 transition-opacity"
         >
-          <span className="text-xs text-muted-foreground font-light">Made by:</span>
+          <span className="text-xs text-muted-foreground font-light">
+            Made by:
+          </span>
           <Image
             src="/images/design-mode/Together-logo.svg"
             alt="Together AI"
@@ -66,19 +70,37 @@ export function Header({ onOpenApiModal, credits }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={onOpenApiModal} className="gap-2 bg-transparent shadow-none">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenApiModal}
+          className="gap-2 bg-transparent shadow-none"
+        >
           <Key className="w-4 h-4" />
           <span className="hidden sm:inline">API Key</span>
-          <span className="text-xs text-muted-foreground">({credits} credits)</span>
+          <span className="text-xs text-muted-foreground">
+            ({credits} credits)
+          </span>
         </Button>
 
-        <Button variant="outline" size="sm" asChild className="gap-2 bg-transparent shadow-none">
-          <a href={`https://github.com/${GITHUB_REPO}`} target="_blank" rel="noopener noreferrer">
+        <Button
+          variant="outline"
+          size="sm"
+          asChild
+          className="gap-2 bg-transparent shadow-none"
+        >
+          <a
+            href={`https://github.com/${GITHUB_REPO}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <GithubIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">{isLoading ? "..." : starCount?.toLocaleString() || "0"}</span>
+            <span className="hidden sm:inline">
+              {isLoading ? "..." : starCount?.toLocaleString() || "0"}
+            </span>
           </a>
         </Button>
       </div>
     </header>
-  )
+  );
 }
