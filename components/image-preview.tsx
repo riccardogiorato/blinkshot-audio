@@ -72,16 +72,27 @@ export function ImagePreview({ image, isGenerating }: ImagePreviewProps) {
       )}
 
       {image && (
-        <div className="relative max-w-full max-h-full animate-in fade-in duration-500">
+        <>
+          {/* Blurred background */}
           <Image
             src={image.url || "/placeholder.svg"}
-            alt={image.prompt}
-            width={1024}
-            height={1024}
-            className="object-contain max-h-[600px] w-auto"
+            alt=""
+            fill
+            className="object-cover blur-sm scale-110"
             priority
           />
-        </div>
+          {/* Main image */}
+          <div className="relative max-w-full max-h-full animate-in fade-in duration-500 z-10">
+            <Image
+              src={image.url || "/placeholder.svg"}
+              alt={image.prompt}
+              width={1024}
+              height={1024}
+              className="object-contain max-h-[600px] w-auto"
+              priority
+            />
+          </div>
+        </>
       )}
     </div>
   )
