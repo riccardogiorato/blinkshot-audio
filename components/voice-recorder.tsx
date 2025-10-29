@@ -67,6 +67,12 @@ export function VoiceRecorder({
     currentTranscriptionRef.current = transcription;
   }, [transcription]);
 
+  useEffect(() => {
+    if (isRecording && credits !== null && credits <= 0 && !apiKey) {
+      stopRecording();
+    }
+  }, [credits, apiKey, isRecording]);
+
   const startRecording = async () => {
     try {
       console.log("[v0] Requesting microphone access...");
@@ -342,18 +348,18 @@ export function VoiceRecorder({
          <Button
            onClick={runDemo}
            size="lg"
-           className="w-full gap-2 text-base h-11 cursor-pointer"
+           className={`w-full gap-2 text-base h-11 ${isRecording || isGenerating || (credits !== null && credits <= 0 && !apiKey) ? 'cursor-not-allowed' : 'cursor-pointer'}`}
            variant="outline"
-           disabled={isRecording || isGenerating}
+           disabled={isRecording || isGenerating || (credits !== null && credits <= 0 && !apiKey)}
          >
            Demo
          </Button>
          <Button
            onClick={toggleRecording}
            size="lg"
-           className="w-full gap-2 text-base h-11 cursor-pointer"
+           className={`w-full gap-2 text-base h-11 ${!isInitialized || (credits !== null && credits <= 0 && !apiKey) ? 'cursor-not-allowed' : 'cursor-pointer'}`}
            variant={isRecording ? "destructive" : "default"}
-           disabled={!isInitialized}
+           disabled={!isInitialized || (credits !== null && credits <= 0 && !apiKey)}
          >
            {isRecording ? (
              <>
