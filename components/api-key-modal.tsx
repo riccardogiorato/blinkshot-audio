@@ -16,7 +16,7 @@ interface ApiKeyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (apiKey: string) => void;
-  credits: number;
+  credits: number | null;
   currentApiKey: string;
 }
 
@@ -29,24 +29,29 @@ export function ApiKeyModal({
 }: ApiKeyModalProps) {
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
+  const [buttonText, setButtonText] = useState("Save API Key");
 
   useEffect(() => {
-    if (isOpen && currentApiKey) {
-      setApiKey(currentApiKey);
+    if (isOpen) {
+      setApiKey(currentApiKey || "");
     }
   }, [isOpen, currentApiKey]);
 
+  useEffect(() => {
+    setButtonText(apiKey.trim() ? "Save API Key" : "Remove API Key");
+  }, [apiKey]);
+
   const handleSave = () => {
-    if (apiKey.trim()) {
-      onSave(apiKey.trim());
-      setApiKey("");
-      setShowApiKey(false);
-    }
+    onSave(apiKey);
+    setApiKey("");
+    setShowApiKey(false);
+    setButtonText("Save API Key");
   };
 
   const handleClose = () => {
     setApiKey("");
     setShowApiKey(false);
+    setButtonText("Save API Key");
     onClose();
   };
 
@@ -113,14 +118,12 @@ export function ApiKeyModal({
               onClick={handleSave}
               className="flex-1 shadow-none cursor-pointer"
             >
-              Save API Key
+              {buttonText}
             </Button>
           </div>
 
           <p className="text-muted-foreground text-center text-xs">
-            You have{" "}
-            <span className="font-semibold text-foreground">{credits}</span>{" "}
-            free credits remaining
+            {credits === null ? "Loading credits..." : credits === -1 ? "Unlimited generations with your API key" : `You have ${credits} free credits remaining`}
           </p>
         </div>
       </DialogContent>

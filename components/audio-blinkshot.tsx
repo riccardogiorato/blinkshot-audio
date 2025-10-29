@@ -24,39 +24,28 @@ export default function AudioBlinkshot() {
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [credits, setCredits] = useState(15)
+  const [credits, setCredits] = useState<number | null>(null)
   const [apiKey, setApiKey] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
 
-  // Load credits and API key from localStorage on mount
+  // Load API key from localStorage on mount
   useEffect(() => {
-    const storedCredits = localStorage.getItem("audio-blinkshot-credits")
     const storedApiKey = localStorage.getItem("audio-blinkshot-api-key")
-    const lastResetDate = localStorage.getItem("audio-blinkshot-last-reset")
-
-    const today = new Date().toDateString()
-
-    // Reset credits daily
-    if (lastResetDate !== today) {
-      localStorage.setItem("audio-blinkshot-credits", "15")
-      localStorage.setItem("audio-blinkshot-last-reset", today)
-      setCredits(15)
-    } else if (storedCredits) {
-      setCredits(Number.parseInt(storedCredits, 10))
-    }
-
     if (storedApiKey) {
       setApiKey(storedApiKey)
+      setCredits(-1)
+    } else {
+      fetch('/api/limits')
+        .then(res => res.json())
+        .then(data => setCredits(data.remaining))
+        .catch(() => setCredits(0))
     }
   }, [])
 
-  // Save credits to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem("audio-blinkshot-credits", credits.toString())
-  }, [credits])
+
 
   const handleGenerateImage = async (prompt: string) => {
-    if (credits <= 0 && !apiKey) {
+    if (credits !== null && credits <= 0 && !apiKey) {
       setIsModalOpen(true)
       return
     }
@@ -69,7 +58,7 @@ export default function AudioBlinkshot() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: `${selectedMood} style: ${prompt}`,
-          apiKey: credits <= 0 ? apiKey : undefined,
+          apiKey: apiKey || undefined,
         }),
       })
 
@@ -86,22 +75,35 @@ export default function AudioBlinkshot() {
         timestamp: Date.now(),
       }
 
-      setGeneratedImages((prev) => [newImage, ...prev])
-      setCurrentImageIndex(0)
+       setGeneratedImages((prev) => [newImage, ...prev])
+       setCurrentImageIndex(0)
 
-      if (credits > 0) {
-        setCredits((prev) => Math.max(0, prev - 1))
-      }
+       if (!apiKey) {
+         fetch('/api/limits')
+           .then(res => res.json())
+           .then(data => setCredits(data.remaining))
+       }
     } catch (error) {
-      console.error("[v0] Error generating image:", error)
+      console.error("Error generating image:", error)
     } finally {
       setIsGenerating(false)
     }
   }
 
   const handleSaveApiKey = (key: string) => {
-    setApiKey(key)
-    localStorage.setItem("audio-blinkshot-api-key", key)
+    if (key.trim()) {
+      setApiKey(key.trim())
+      localStorage.setItem("audio-blinkshot-api-key", key.trim())
+      setCredits(-1)
+    } else {
+      setApiKey("")
+      localStorage.removeItem("audio-blinkshot-api-key")
+      setCredits(null)
+      fetch('/api/limits')
+        .then(res => res.json())
+        .then(data => setCredits(data.remaining))
+        .catch(() => setCredits(0))
+    }
     setIsModalOpen(false)
   }
 

@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 
 interface HeaderProps {
   onOpenApiModal: () => void;
-  credits: number;
+  credits: number | null;
 }
 
 export function Header({ onOpenApiModal, credits }: HeaderProps) {
@@ -78,9 +78,9 @@ export function Header({ onOpenApiModal, credits }: HeaderProps) {
         >
           <Key className="w-4 h-4" />
           <span className="hidden sm:inline">API Key</span>
-          <span className="text-xs text-muted-foreground">
-            ({credits} credits)
-          </span>
+           <span className="text-xs text-muted-foreground">
+             {credits === null ? "(Loading...)" : credits === -1 ? "(Unlimited)" : `(${credits} credits)`}
+           </span>
         </Button>
 
         <Button

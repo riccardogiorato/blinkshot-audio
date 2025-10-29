@@ -1,77 +1,83 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { ratelimitGenerations } from "@/lib/ratelimit";
+import { type NextRequest, NextResponse } from "next/server";
+import Together from "together-ai";
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt, apiKey } = await request.json()
+    const { prompt, apiKey } = await request.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Prompt is required" },
+        { status: 400 }
+      );
     }
 
     // Use user's API key or default (you would need to add a default key for free credits)
-    const togetherApiKey = apiKey || process.env.TOGETHER_API_KEY
+    const togetherApiKey = apiKey || process.env.TOGETHER_API_KEY;
 
     if (!togetherApiKey) {
-      return NextResponse.json({ error: "API key not configured" }, { status: 500 })
+      return NextResponse.json(
+        { error: "API key not configured" },
+        { status: 500 }
+      );
     }
 
-    console.log("[v0] Generating image with prompt:", prompt.substring(0, 50) + "...")
+    // Rate limiting for users without API key
+    if (!apiKey) {
+      const ip =
+        request.headers.get("x-forwarded-for") ||
+        request.headers.get("x-real-ip") ||
+        "unknown";
+      const { success } = await ratelimitGenerations.limit(ip);
 
-    const response = await fetch("https://api.together.xyz/v1/images/generations", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${togetherApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "black-forest-labs/FLUX.1-schnell",
-        prompt: prompt,
-        width: 1024,
-        height: 768,
-        steps: 4,
-        n: 1,
-      }),
-    })
-
-    const contentType = response.headers.get("content-type")
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error("[v0] Together AI API error:", response.status, errorText)
-      
-      // Try to parse as JSON if possible
-      try {
-        const errorJson = JSON.parse(errorText)
+      if (!success) {
         return NextResponse.json(
-          { error: errorJson.error?.message || "Failed to generate image" },
-          { status: response.status }
-        )
-      } catch {
-        return NextResponse.json(
-          { error: `API error: ${errorText.substring(0, 100)}` },
-          { status: response.status }
-        )
+          {
+            error:
+              "Rate limit exceeded. Please add your own API key for unlimited generations.",
+          },
+          { status: 429 }
+        );
       }
     }
 
-    if (!contentType?.includes("application/json")) {
-      const text = await response.text()
-      console.error("[v0] Unexpected response type:", contentType, text.substring(0, 100))
-      return NextResponse.json({ error: "Unexpected response from API" }, { status: 500 })
-    }
+    console.log(
+      "Generating image with prompt:",
+      prompt.substring(0, 50) + "..."
+    );
 
-    const data = await response.json()
-    console.log("[v0] Image generated successfully")
-    
-    const imageUrl = data.data?.[0]?.url || data.data?.[0]?.b64_json
+    const client = new Together({
+      apiKey: togetherApiKey,
+    });
+
+    const response = await client.images.create({
+      model: "black-forest-labs/FLUX.1-schnell",
+      prompt: prompt,
+      width: 1024,
+      height: 768,
+      steps: 4,
+      n: 1,
+    });
+
+    console.log("Image generated successfully");
+
+    const imageUrl = response.data?.[0]?.url;
 
     if (!imageUrl) {
-      console.error("[v0] No image URL in response:", data)
-      return NextResponse.json({ error: "No image URL in response" }, { status: 500 })
+      console.error("No image URL in response:", response);
+      return NextResponse.json(
+        { error: "No image URL in response" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ imageUrl })
+    return NextResponse.json({ imageUrl });
   } catch (error) {
-    console.error("[v0] Error in generate-image route:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error in generate-image route:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
