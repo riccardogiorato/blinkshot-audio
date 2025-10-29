@@ -2,7 +2,12 @@ import type React from "react";
 import type { Metadata } from "next";
 
 import { Analytics } from "@vercel/analytics/next";
+import { Dosis } from "next/font/google";
 import "./globals.css";
+
+const dosis = Dosis({
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "Audio Blinkshot - Voice to Image Generation",
@@ -32,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans antialiased`}>
+      <body className={`${dosis.className} antialiased`}>
         {children}
         <Analytics />
       </body>
