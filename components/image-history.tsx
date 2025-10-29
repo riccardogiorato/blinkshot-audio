@@ -19,10 +19,10 @@ export function ImageHistory({ images, currentIndex, onSelectImage }: ImageHisto
             key={image.id}
             onClick={() => onSelectImage(index)}
             className={cn(
-              "flex-shrink-0 w-28 h-28 rounded-xl border-2 transition-all hover:scale-105 p-1",
+              "flex-shrink-0 w-28 h-28 rounded-xl transition-all hover:scale-105 p-1",
               currentIndex === index
-                ? "border-primary ring-2 ring-primary"
-                : "border-border hover:border-foreground/40",
+                ? "shadow-lg shadow-primary/20"
+                : "",
             )}
           >
             <Image
