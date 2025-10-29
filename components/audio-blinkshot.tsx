@@ -79,6 +79,7 @@ export default function AudioBlinkshot() {
        setCurrentImageIndex(0)
 
        if (!apiKey) {
+         setCredits(null)
          fetch('/api/limits')
            .then(res => res.json())
            .then(data => setCredits(data.remaining))
