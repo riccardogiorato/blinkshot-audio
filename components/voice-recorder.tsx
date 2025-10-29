@@ -11,7 +11,7 @@ interface VoiceRecorderProps {
   onRecordingChange: (recording: boolean) => void;
   onGenerateImage: (prompt: string) => void;
   isGenerating: boolean;
-  credits: number;
+  credits: number | null;
   apiKey: string;
 }
 
@@ -339,7 +339,9 @@ export function VoiceRecorder({
           )}
         </Button>
         <p className="text-xs text-muted-foreground text-center">
-          {credits > 0 ? (
+          {credits === null ? (
+            <span>Loading credits...</span>
+          ) : credits > 0 ? (
             <span>
               <span className="font-semibold text-foreground">{credits}</span>{" "}
               free credits remaining today
