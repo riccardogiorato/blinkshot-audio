@@ -186,7 +186,7 @@ export function VoiceRecorder({
         );
 
         if (currentText.length >= 3) {
-          if (credits > 0 || apiKey) {
+          if ((credits !== null && credits > 0) || apiKey) {
             console.log("[v0] Triggering image generation");
             onGenerateImage(currentText);
           } else {
@@ -295,6 +295,26 @@ export function VoiceRecorder({
     }
   };
 
+  const runDemo = () => {
+    const initialPrompt = "A beautiful sunset over the ocean";
+    const extraPart = " with waves crashing on the shore";
+
+    onTranscriptionChange(initialPrompt);
+    if ((credits !== null && credits > 0) || apiKey) {
+      onGenerateImage(initialPrompt);
+    }
+
+    setTimeout(() => {
+      const currentText = currentTranscriptionRef.current;
+      const updatedText = currentText + extraPart;
+      onTranscriptionChange(updatedText);
+      currentTranscriptionRef.current = updatedText;
+      if ((credits !== null && credits > 0) || apiKey) {
+        onGenerateImage(updatedText);
+      }
+    }, 5000);
+  };
+
   return (
     <div className="flex flex-col gap-4 h-full lg:h-auto">
       <div className="flex-1 min-h-[120px] lg:min-h-[200px] p-4 rounded-lg border overflow-y-auto bg-background shadow-none">
@@ -318,26 +338,35 @@ export function VoiceRecorder({
         </Alert>
       )}
 
-      <div className="flex flex-col gap-3 mt-auto lg:mt-0">
-        <Button
-          onClick={toggleRecording}
-          size="lg"
-          className="w-full gap-2 text-base h-11 cursor-pointer"
-          variant={isRecording ? "destructive" : "default"}
-          disabled={!isInitialized}
-        >
-          {isRecording ? (
-            <>
-              <Square className="w-5 h-5" />
-              Stop recording
-            </>
-          ) : (
-            <>
-              <Mic className="w-5 h-5" />
-              Start recording
-            </>
-          )}
-        </Button>
+       <div className="flex flex-col gap-3 mt-auto lg:mt-0">
+         <Button
+           onClick={runDemo}
+           size="lg"
+           className="w-full gap-2 text-base h-11 cursor-pointer"
+           variant="outline"
+           disabled={isRecording || isGenerating}
+         >
+           Demo
+         </Button>
+         <Button
+           onClick={toggleRecording}
+           size="lg"
+           className="w-full gap-2 text-base h-11 cursor-pointer"
+           variant={isRecording ? "destructive" : "default"}
+           disabled={!isInitialized}
+         >
+           {isRecording ? (
+             <>
+               <Square className="w-5 h-5" />
+               Stop recording
+             </>
+           ) : (
+             <>
+               <Mic className="w-5 h-5" />
+               Start recording
+             </>
+           )}
+         </Button>
         <p className="text-xs text-muted-foreground text-center">
           {credits === null ? (
             <span>Loading credits...</span>
